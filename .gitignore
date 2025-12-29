@@ -1,0 +1,94 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+dist/
+build/
+
+# =========================
+# Virtual Environments
+# =========================
+venv/
+.venv/
+env/
+ENV/
+.env/
+.env.*
+
+# =========================
+# IDEs & Editors
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+uvicorn.log
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Coverage / Testing
+# =========================
+.coverage
+htmlcov/
+.pytest_cache/
+
+# =========================
+# Secrets & Keys
+# =========================
+*.pem
+*.key
+*.crt
+secrets/
+credentials/
+apikeys/
+
+# =========================
+# LangChain / LLM Artifacts
+# =========================
+.cache/
+langchain.db
+chroma/
+vectorstore/
+
+# =========================
+# FastAPI / Runtime
+# =========================
+*.sqlite3
+db.sqlite3
+local.db
+
+# =========================
+# Node (if frontend added later)
+# =========================
+node_modules/
+
+# =========================
+# Temporary / Debug
+# =========================
+tmp/
+temp/
+*.tmp
