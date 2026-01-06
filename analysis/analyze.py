@@ -1,23 +1,16 @@
 from llm.llm_factory import get_llm
-from analysis.prompts import generate_prompts
+from analysis.report import generate_report
 
-def run_analysis(topic, persona, models, num_prompts):
-    results = {}
+SYSTEM_ANALYSIS = """
+You are a senior market and competitive intelligence analyst.
+Your task is to reason deeply, write clearly, and avoid generic filler.
+Always structure insights, quantify when possible, and avoid hallucinating data.
+"""
 
-    for model_name in models:
-        model_key = model_name.lower().strip()  # ⭐ FIX
 
-        llm = get_llm(model_key)
-
-        prompts = generate_prompts(
-            topic=topic,
-            persona=persona,
-            num=num_prompts,
-            llm=llm
-        )
-
-        results[model_key] = {
-            "prompts": prompts
-        }
-
-    return results
+def run_analysis(payload: dict) -> dict:
+    """
+    Uses already generated data.
+    No discovery logic here.
+    """
+    return payload

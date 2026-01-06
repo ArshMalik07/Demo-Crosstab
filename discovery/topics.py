@@ -1,13 +1,11 @@
 # discovery/topics.py
-
 from typing import List
 from langchain_core.messages import HumanMessage
 from llm.llm_factory import get_discovery_llm
 import json
 import re
 
-
-def generate_topics(company: str, category: str, num: int = 6) -> List[str]:
+def generate_topics(company: str, prompt: str, persona: str, num: int = 6) -> List[str]:
     """
     Generates HIGH-LEVEL discovery topics.
     These are dashboard-style themes, NOT analysis questions.
@@ -18,7 +16,8 @@ Generate exactly {num} high-level topic labels
 related to the following domain.
 
 Company: {company}
-Category: {category}
+Prompt: {prompt}
+persona: {persona}
 
 Rules:
 - Topics must be SHORT (3–8 words)

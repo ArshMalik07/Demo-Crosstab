@@ -5,7 +5,6 @@ from langchain_core.messages import HumanMessage
 from llm.llm_factory import get_discovery_llm
 import json, re
 
-
 def generate_personas(company: str, category: str, num: int = 6) -> List[str]:
     """
     Returns high-level analytical personas (roles only).
@@ -30,7 +29,7 @@ Example:
 ["Product Manager", "Market Research Analyst"]
 """
 
-    llm = get_discovery_llm()   # 🔒 Discovery = Gemini fixed
+    llm = get_discovery_llm()  
     resp = llm.invoke([HumanMessage(content=prompt)])
 
     raw = resp.content

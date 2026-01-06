@@ -1,51 +1,35 @@
 from pydantic import BaseModel, HttpUrl, Field
 from typing import List, Optional
 
-# ==================================================
-# 1️⃣ COMPANY VERIFICATION
-# ==================================================
-
+#  COMPANY VERIFICATION
 class CompanyVerifyRequest(BaseModel):
     url: HttpUrl
-
 
 class CompanyVerifyResponse(BaseModel):
     valid: bool
     company: Optional[str] = None
     reason: Optional[str] = None
 
-
-# ==================================================
 # BASE (VERIFIED COMPANY)
-# ==================================================
-
 class CompanyBase(BaseModel):
     company: str = Field(..., description="Verified company name")
 
-
-# ==================================================
-# 2️⃣ DISCOVERY
-# ==================================================
-
+#  DISCOVERY
 class ProductRequest(CompanyBase):
     pass
 
-
 class PersonaRequest(CompanyBase):
-    category: str
-
+    product: str
 
 class TopicRequest(CompanyBase):
-    category: str
-
-
-# ==================================================
-# 3️⃣ ANALYSIS (MULTI-LLM)
-# ==================================================
-
-class AnalysisRequest(BaseModel):
-    topic: str
+    product: str
     persona: str
+
+#  ANALYSIS (MULTI-LLM)
+class AnalysisRequest(BaseModel):
+    product: str
+    persona: str
+    topic: str
 
     models: List[str] = Field(
         ...,
@@ -58,3 +42,13 @@ class AnalysisRequest(BaseModel):
         le=10,
         description="Prompts per model"
     )
+
+
+
+class ReportRequest(BaseModel):
+    brand: str
+    product: str
+    personas: List[str]
+    topics: List[str]
+    prompts: List[str]
+    models: List[str]   

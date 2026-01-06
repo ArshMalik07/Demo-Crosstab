@@ -1,50 +1,49 @@
-# analysis/scoring/topic.py
-# Scores relevance of topics in analysis corpus
-
 from typing import Dict, List
-import json, re
-
-from langchain_core.messages import HumanMessage
+import json
+import re
 from llm.llm_factory import get_llm
-from llm.response_utils import extract_text
 
 
 def score_topics(topics: List[str], corpus: str) -> Dict[str, int]:
-    """
-    Returns: { topic: score }
-    """
+    if not corpus.strip():
+        return {}
 
-    llm = get_llm()
+    llm = get_llm("gemini")
 
     prompt = f"""
-Evaluate relevance of these topics based on the text.
+You are scoring how relevant each topic is
+based on the following analysis text.
 
-TEXT:
-{corpus}
+---
+{corpus[:2500]}
+---
 
-TOPICS:
-{json.dumps(topics)}
+Topics to score:
+{topics}
 
-Rules:
-- Output ONLY JSON dict
-- Score 0–100 (integer)
+TASK:
+Give each topic a relevance score from 40–100.
+
+RULES:
+- Higher = more discussed or implied
+- NEVER create new topics
+- Output ONLY JSON (topic: score)
+
+FORMAT:
+{{
+ "Topic A": 80,
+ "Topic B": 60
+}}
 """
 
-    resp = llm.invoke([HumanMessage(content=prompt)])
-    text = extract_text(resp)
+    resp = llm.invoke(prompt)
+    text = getattr(resp, "content", str(resp))
+
+    match = re.search(r"\{[\s\S]*\}", text)
+    if not match:
+        return {}
 
     try:
-        match = re.search(r"\{{.*\}}", text, re.DOTALL)
-        raw = json.loads(match.group(0)) if match else {}
-    except:
-        raw = {}
-
-    result = {}
-    for k, v in raw.items():
-        try:
-            v = int(float(v))
-        except:
-            v = 0
-        result[k] = max(0, min(v, 100))
-
-    return result
+        return json.loads(match.group(0))
+    except Exception:
+        return {}

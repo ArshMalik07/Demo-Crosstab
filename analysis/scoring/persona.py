@@ -1,51 +1,52 @@
-# analysis/scoring/persona.py
-# Scores persona visibility in corpus
-
 from typing import Dict, List
-import json, re
-
-from langchain_core.messages import HumanMessage
+import json
+import re
 from llm.llm_factory import get_llm
-from llm.response_utils import extract_text
 
 
-def score_personas(personas: List[str], corpus: str) -> Dict[str, int]:
-    """
-    Returns: { persona: score }
-    """
+def score_personas(corpus: str, personas: List[str]) -> Dict[str, int]:
+    if not personas:
+        return {}
 
-    llm = get_llm()
+    llm = get_llm("openai")
 
     prompt = f"""
-Analyze how strongly each persona perspective appears.
+You are evaluating how visible each persona is in the following analysis.
 
-TEXT:
-{corpus}
+---
+{corpus[:2500]}
+---
 
-PERSONAS:
-{json.dumps(personas)}
+Personas to evaluate (IMPORTANT: DO NOT MODIFY THESE NAMES):
+{personas}
 
-Rules:
-- Output ONLY JSON dict
-- Score 0–100 (integer)
+TASK:
+Score ONLY these personas from 40–100 based on how strongly each one appears.
+
+STRICT RULES:
+- Do NOT change persona names
+- Do NOT create new personas
+- Use EXACT strings when returning keys
+- Output ONLY JSON
+
+FORMAT:
+{{
+ "Persona 1": 91,
+ "Persona 2": 84
+}}
 """
 
-    resp = llm.invoke([HumanMessage(content=prompt)])
-    text = extract_text(resp)
+    resp = llm.invoke(prompt)
+    text = getattr(resp, "content", str(resp))
+
+    match = re.search(r"\{[\s\S]*\}", text)
+    if not match:
+        return {}
 
     try:
-        match = re.search(r"\{{.*\}}", text, re.DOTALL)
-        raw = json.loads(match.group(0)) if match else {}
-    except:
-        raw = {}
+        data = json.loads(match.group(0))
 
-    result = {}
-    for k, v in raw.items():
-        try:
-            v = int(float(v))
-        except:
-            v = 0
-        result[k] = max(0, min(v, 100))
-
-    # Sort descending
-    return dict(sorted(result.items(), key=lambda x: x[1], reverse=True))
+        # sort descending
+        return dict(sorted(data.items(), key=lambda x: x[1], reverse=True))
+    except Exception:
+        return {}

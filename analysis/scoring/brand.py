@@ -1,69 +1,52 @@
-# analysis/scoring/brand.py
-# Scores brand visibility & competitor mentions
-
 from typing import Dict
-import json, re
-
-from langchain_core.messages import HumanMessage
+import json
+import re
 from llm.llm_factory import get_llm
-from llm.response_utils import extract_text
 
 
-def score_brand(company: str, category: str, corpus: str) -> Dict:
-    """
-    Returns:
-    {
-      "brand_visibility": { "Brand": percent },
-      "brand_mentions": { "Brand": score, ... }
-    }
-    """
-
-    llm = get_llm()
+def score_brands(company: str, category: str, corpus: str) -> Dict:
+    llm = get_llm("gemini")
 
     prompt = f"""
-You are a competitive market analyst.
+You are an expert market analyst.
 
-Identify REAL competitor brands for:
-Company: "{company}"
-Category: "{category}"
+TASK:
+1️⃣ Identify 6 brands relevant to category: "{category}"
+2️⃣ ALWAYS include this brand: "{company}"
+3️⃣ Score each brand from 40 to 100 based on visibility in this context:
 
-TEXT:
-{corpus}
+---
+{corpus[:2500]}
+---
 
-Rules:
-- Output ONLY JSON object
-- Keys = brand names
-- Values = integer relevance score (0–100)
-- Include "{company}"
-- Max 5 brands
+RULES:
+- Output ONLY JSON
+- No explanations
+- Sort from highest to lowest score
+
+FORMAT:
+{{
+ "brand_visibility": {{"{company}": 78}},
+ "brand_mentions": {{
+   "BrandA": 92,
+   "BrandB": 86,
+   "BrandC": 80,
+   "BrandD": 74,
+   "BrandE": 69
+ }}
+}}
 """
 
-    resp = llm.invoke([HumanMessage(content=prompt)])
-    text = extract_text(resp)
+    response = llm.invoke(prompt)
+    text = getattr(response, "content", str(response))
+
+    # try to extract JSON safely
+    match = re.search(r"\{[\s\S]*\}", text)
+    if not match:
+        return {"brand_visibility": {}, "brand_mentions": {}}
 
     try:
-        match = re.search(r"\{{.*\}}", text, re.DOTALL)
-        data = json.loads(match.group(0)) if match else {}
-    except:
-        data = {}
-
-    # Normalize
-    normalized = {}
-    for k, v in data.items():
-        try:
-            v = int(float(v))
-        except:
-            v = 0
-        v = max(0, min(v, 100))
-        normalized[k.title()] = v
-
-    if company.title() not in normalized:
-        normalized[company.title()] = 1
-
-    total = sum(normalized.values()) or 1
-    visibility = round((normalized[company.title()] / total) * 100)
-
-    return {
-        "brand_visibility": {company.title(): visibility},
-        "brand_mentions": normalized
-    }
+        data = json.loads(match.group(0))
+        return data
+    except Exception:
+        return {"brand_visibility": {}, "brand_mentions": {}}
